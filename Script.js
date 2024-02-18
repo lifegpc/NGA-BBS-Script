@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
-// @version      4.4.1.2
+// @version      4.4.1.3
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
 // @license      MIT
@@ -334,9 +334,9 @@
          * @param {String} key
          * @param {String} value
          */
-        setValue(key, value) {
+        async setValue(key, value) {
             try {
-                GM_setValue(key, value)
+                await GM_setValue(key, value)
             } catch {}
             window.localStorage.setItem(key, value)
         }
