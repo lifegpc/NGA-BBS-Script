@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
-// @version      4.4.1
+// @version      4.4.1.1
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
 // @license      MIT
@@ -217,19 +217,22 @@
          * 初始化
          * @method init
          */
-        init() {
+        async init() {
             // 开始初始化
             this.printLog('初始化...')
             localforage.config({name: 'NGA BBS Script DB'})
             const startInitTime = new Date().getTime()
             const modulesTable = []
             //同步配置
-            this.loadSetting()
+            await this.loadSetting()
             // 组件初始化函数
             for (const module of this.modules) {
                 if (module.initFunc) {
                     try {
-                        module.initFunc(this)
+                        const re = module.initFunc(this)
+                        if (re instanceof Promise) {
+                            await re;
+                        }
                     } catch (error) {
                         this.printLog(`[${module.name}]模块在[initFunc()]中运行失败！`)
                         console.log(error)
@@ -318,9 +321,9 @@
          * @method saveSetting
          * @param {String} key
          */
-        getValue(key) {
+        async getValue(key) {
             try {
-                return GM_getValue(key) || window.localStorage.getItem(key)
+                return (await GM_getValue(key)) || window.localStorage.getItem(key)
             } catch {
                 return window.localStorage.getItem(key)
             }
@@ -386,10 +389,10 @@
          * 从本地读取配置
          * @method loadSetting
          */
-        loadSetting() {
+        async loadSetting() {
             // 基础设置
             try {
-                const settingStr = script.getValue('hld__NGA_setting')
+                const settingStr = await script.getValue('hld__NGA_setting')
                 if (settingStr) {
                     let localSetting = JSON.parse(settingStr)
                     for (let k in this.setting.normal) {
@@ -426,7 +429,7 @@
                     this.setting.normal = localSetting
                 }
                 // 高级设置
-                const advancedSettingStr = script.getValue('hld__NGA_advanced_setting')
+                const advancedSettingStr = await script.getValue('hld__NGA_advanced_setting')
                 if (advancedSettingStr) {
                     let localAdvancedSetting = JSON.parse(advancedSettingStr)
                     for (let k in this.setting.advanced) {
@@ -450,7 +453,7 @@
          * 检查是否更新
          * @method checkUpdate
          */
-        checkUpdate() {
+        async checkUpdate() {
             // 字符串版本转数字
             const vstr2num = str => {
                 let num = 0
@@ -462,7 +465,7 @@
                 return str.substring(0, str.lastIndexOf('.'))
             }
             //检查更新
-            const cver = script.getValue('hld__NGA_version')
+            const cver = await script.getValue('hld__NGA_version')
             if (cver) {
                 const local_version = vstr2num(cver)
                 const current_version = vstr2num(GM_info.script.version)
@@ -496,9 +499,9 @@
          * 运行脚本
          * @method run
          */
-        run() {
-            this.checkUpdate()
-            this.init()
+        async run() {
+            await this.checkUpdate()
+            await this.init()
             setInterval(() => {
                 this.renderAlways()
                 this.isThreads() && this.renderThreads()
@@ -2235,8 +2238,8 @@
             ]
         },
         postAuthor: [],
-        initFunc() {
-            const localPostAuthor = script.getValue('hld__NGA_post_author')
+        async initFunc() {
+            const localPostAuthor = await script.getValue('hld__NGA_post_author')
             localPostAuthor && (this.postAuthor = localPostAuthor.split(','))
             // 初始化颜色选择器
             this.initSpectrum('#hld__setting_cover #hld__adv_authorMarkColor')
@@ -2468,10 +2471,10 @@
             menu: 'right'
         }],
         keywordsList: [],
-        initFunc() {
+        async initFunc() {
             const _this = this
             // 同步本地数据
-            const localKeywordsList = script.getValue('hld__NGA_keywords_list')
+            const localKeywordsList = await script.getValue('hld__NGA_keywords_list')
             try {
                 localKeywordsList && (_this.keywordsList = JSON.parse(localKeywordsList))
             } catch {
@@ -2661,10 +2664,10 @@
         banList: [],
         markList: [],
         markedTags: [],
-        initFunc() {
+        async initFunc() {
             const _this = this
             // 读取本地数据
-            const localBanList = script.getValue('hld__NGA_ban_list')
+            const localBanList = await script.getValue('hld__NGA_ban_list')
             try {
                 localBanList && (_this.banList = JSON.parse(localBanList))
             } catch {
@@ -2672,7 +2675,7 @@
                 script.deleteValue('hld__NGA_ban_list')
                 script.throwError('【NGA-Script】无法加载黑名单列表，数据解析失败\n黑名单已清空，之前的数据已经备份到hld__NGA_ban_list_bak\n请在控制台中的localStorage中查看')
             }
-            const localMarkList = script.getValue('hld__NGA_mark_list')
+            const localMarkList = await script.getValue('hld__NGA_mark_list')
             try {
                 if (localMarkList) {
                     _this.markList = JSON.parse(localMarkList)
@@ -4063,7 +4066,7 @@
             script.setting.plugin = {}
             this.pluginSetting = script.setting.plugin
         },
-        initFunc() {
+        async initFunc() {
             // 添加到配置面板的设置入口
             script.getModule('SettingPanel').addButton({
                 title: '插件管理',
@@ -4089,7 +4092,7 @@
                 })
             }
             // 加载配置
-            this.loadSetting()
+            await this.loadSetting()
             this.initSettingPanel()
         },
         initSettingPanel() {
@@ -4319,10 +4322,10 @@
          * 读取插件配置
          * @method loadSetting
          */
-        loadSetting() {
+        async loadSetting() {
             try {
                 // 插件设置
-                const pluginSettingStr = script.getValue('hld__NGA_plugin_setting')
+                const pluginSettingStr = await script.getValue('hld__NGA_plugin_setting')
                 if (pluginSettingStr) {
                     let localPluginSetting = JSON.parse(pluginSettingStr)
                     for (const pluginName of Object.keys(localPluginSetting)) {
