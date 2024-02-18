@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         NGA优化摸鱼体验-帖子浏览记录
 // @namespace    https://github.com/kisshang1993/test_plugin
+// @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/plugins/PostReadingRecord/PostReadingRecord.js
 // @version      1.0.1
 // @author       HLD
 // @description  记录帖子的阅读状态，着色以阅读帖子标题，跟踪后续新回复数量
@@ -9,9 +10,8 @@
 // @match        *://ngabbs.com/*
 // @match        *://nga.178.com/*
 // @match        *://g.nga.cn/*
-// @grant        unsafeWindow
 // @run-at       document-start
-// @inject-into  content
+// @inject-into  page
 // ==/UserScript==
 
 (function (registerPlugin) {
@@ -141,6 +141,6 @@
 
 })(function(plugin) {
     plugin.meta = GM_info.script
-    unsafeWindow.ngaScriptPlugins = unsafeWindow.ngaScriptPlugins || []
-    unsafeWindow.ngaScriptPlugins.push(plugin)
+    window.ngaScriptPlugins = window.ngaScriptPlugins || []
+    window.ngaScriptPlugins.push(plugin)
 });
