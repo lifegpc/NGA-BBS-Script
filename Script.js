@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
+// @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
 // @version      4.4.1
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
@@ -15,18 +16,50 @@
 // @match        *://ngabbs.com/*
 // @match        *://nga.178.com/*
 // @match        *://g.nga.cn/*
-// @grant        GM_registerMenuCommand
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_deleteValue
-// @grant        GM_listValues
-// @grant        unsafeWindow
-// @inject-into  content
+// @inject-into  page
 // ==/UserScript==
 
 (function () {
     'use strict';
 
+    /**
+     * @param {string} name
+     * @param {Array} args 
+     */
+    function GM(name, args) {
+        const key = Math.random();
+        const ev = new CustomEvent("GM", {detail: {name, key, args}});
+        return new Promise((resolve, reject) => {
+            const handler = (e) => {
+                if (e.detail.key == rkey) {
+                    window.removeEventListener(name, handler);
+                    if (e.detail.error) {
+                        reject(e.detail.error);
+                    } else {
+                        resolve(e.detail.data);
+                    }
+                }
+            }
+            window.addEventListener(name, handler);
+            window.dispatchEvent(ev);
+        })
+    }
+    /**@param {string} key*/
+    async function GM_getValue(key) {
+        return await GM('GM_getValue', [key]);
+    }
+    /**
+     * @param {string} key 
+     * @param {string} value 
+     */
+    async function GM_setValue(key, value) {
+        return await GM('GM_setValue', [key, value]);
+    }
+    /** @param {string} key */
+    async function GM_deleteValue(key) {
+        return await GM('GM_deleteValue', [key]);
+    }
+    const unsafeWindow = window;
     /**
      * NGA摸鱼主脚本
      * @class NGABBSScript
@@ -487,42 +520,42 @@
         }
     }
 
-    /* 注册菜单按钮 */
-    try {
-        // 设置面板
-        GM_registerMenuCommand('设置面板', function () {
-            $('#hld__setting_cover').css('display', 'block')
-            $('html, body').animate({scrollTop: 0}, 500)
-        })
-        // 清理缓存
-        GM_registerMenuCommand('清理缓存', function () {
-            if (window.confirm('此操作为清理Local Storage与IndexedDB部分缓存内容，不会清理配置\n\n继续请点击【确定】')) {
-                script.deleteValue('hld__NGA_post_author')
-                localforage.clear()
-                alert('操作成功，请刷新页面重试')
-            }
-        })
-        // 修复脚本
-        GM_registerMenuCommand('修复脚本', function () {
-            if (window.confirm('如脚本运行失败或无效，尝试修复脚本，这会清除脚本的所有数据\n* 数据包含配置，各种名单等\n* 此操作不可逆转，请谨慎操作\n\n继续请点击【确定】')) {
-                try {
-                    GM_listValues().forEach(key => GM_deleteValue(key))
-                } catch {}
-                window.localStorage.clear()
-                alert('操作成功，请刷新页面重试')
-            }
-        })
-        // 反馈问题
-        GM_registerMenuCommand('反馈问题', function () {
-            if (window.confirm('如脚本运行失败而且修复后也无法运行，请反馈问题报告\n* 问题报告请包含使用的：[浏览器]，[脚本管理器]，[脚本版本]\n* 描述问题最好以图文并茂的形式\n* 如脚本运行失败，建议提供F12控制台的红色错误输出以辅助排查\n\n默认打开的为Greasy Fork的反馈页面，有能力最好去Github Issue反馈问题，可以获得优先处理\n\n即将打开反馈页面，继续请点击【确定】')) {
-                window.open('https://greasyfork.org/zh-CN/scripts/393991-nga%E4%BC%98%E5%8C%96%E6%91%B8%E9%B1%BC%E4%BD%93%E9%AA%8C/feedback')
-            }
-        })
-    } catch (e) {
-        // 不支持此命令
-        console.warn(`【NGA Script】警告：此脚本管理器不支持菜单按钮，可能会导致新特性无法正常使用，建议更改脚本管理器为
-        Tampermonkey[https://www.tampermonkey.net/] 或 Violentmonkey[https://violentmonkey.github.io/]`)
-    }
+    // /* 注册菜单按钮 */
+    // try {
+    //     // 设置面板
+    //     GM_registerMenuCommand('设置面板', function () {
+    //         $('#hld__setting_cover').css('display', 'block')
+    //         $('html, body').animate({scrollTop: 0}, 500)
+    //     })
+    //     // 清理缓存
+    //     GM_registerMenuCommand('清理缓存', function () {
+    //         if (window.confirm('此操作为清理Local Storage与IndexedDB部分缓存内容，不会清理配置\n\n继续请点击【确定】')) {
+    //             script.deleteValue('hld__NGA_post_author')
+    //             localforage.clear()
+    //             alert('操作成功，请刷新页面重试')
+    //         }
+    //     })
+    //     // 修复脚本
+    //     GM_registerMenuCommand('修复脚本', function () {
+    //         if (window.confirm('如脚本运行失败或无效，尝试修复脚本，这会清除脚本的所有数据\n* 数据包含配置，各种名单等\n* 此操作不可逆转，请谨慎操作\n\n继续请点击【确定】')) {
+    //             try {
+    //                 GM_listValues().forEach(key => GM_deleteValue(key))
+    //             } catch {}
+    //             window.localStorage.clear()
+    //             alert('操作成功，请刷新页面重试')
+    //         }
+    //     })
+    //     // 反馈问题
+    //     GM_registerMenuCommand('反馈问题', function () {
+    //         if (window.confirm('如脚本运行失败而且修复后也无法运行，请反馈问题报告\n* 问题报告请包含使用的：[浏览器]，[脚本管理器]，[脚本版本]\n* 描述问题最好以图文并茂的形式\n* 如脚本运行失败，建议提供F12控制台的红色错误输出以辅助排查\n\n默认打开的为Greasy Fork的反馈页面，有能力最好去Github Issue反馈问题，可以获得优先处理\n\n即将打开反馈页面，继续请点击【确定】')) {
+    //             window.open('https://greasyfork.org/zh-CN/scripts/393991-nga%E4%BC%98%E5%8C%96%E6%91%B8%E9%B1%BC%E4%BD%93%E9%AA%8C/feedback')
+    //         }
+    //     })
+    // } catch (e) {
+    //     // 不支持此命令
+    //     console.warn(`【NGA Script】警告：此脚本管理器不支持菜单按钮，可能会导致新特性无法正常使用，建议更改脚本管理器为
+    //     Tampermonkey[https://www.tampermonkey.net/] 或 Violentmonkey[https://violentmonkey.github.io/]`)
+    // }
 
     /* 标准模块 */
     /**
@@ -4037,10 +4070,10 @@
                 desc: '插件管理',
                 click: () => $('#hld__plugin_panel').show()
             })
-            try {
-                // 注册插件管理面板
-                GM_registerMenuCommand('插件管理', () => $('#hld__plugin_panel').show())
-            } catch {}
+            // try {
+            //     // 注册插件管理面板
+            //     GM_registerMenuCommand('插件管理', () => $('#hld__plugin_panel').show())
+            // } catch {}
             // 添加插件到导入导出配置
             script.getModule('BackupModule').addItem({
                 title: '插件配置',
