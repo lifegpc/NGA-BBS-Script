@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
-// @version      4.4.1.1
+// @version      4.4.1.2
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
 // @license      MIT
@@ -31,7 +31,7 @@
         const ev = new CustomEvent("GM", {detail: {name, key, args}});
         return new Promise((resolve, reject) => {
             const handler = (e) => {
-                if (e.detail.key == rkey) {
+                if (e.detail.key == key) {
                     window.removeEventListener(name, handler);
                     if (e.detail.error) {
                         reject(e.detail.error);
