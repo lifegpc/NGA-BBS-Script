@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验-WebDAV配置同步
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script/plugins/WebDAVDataSync
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/plugins/WebDAVDataSync/WebDAVDataSync.js
-// @version      1.0.0
+// @version      1.0.0.1
 // @author       HLD
 // @description  使用WebDAV对配置进行同步，提供上传/下载配置功能
 // @license      MIT
@@ -76,7 +76,7 @@
             action: 'downloadSelected'
         }],
         // 请求构造
-        async request({method, path='', headers, ...config}) {
+        request({method, path='', headers, ...config}) {
             // 获取输入框的当前的值
             let url = this.pluginInputs['url'].val().trim()
             url[url.length - 1] !== '/' && (url += '/')
@@ -89,7 +89,8 @@
                 DELETE: 204
             }
             this.buttons.forEach(button => button.$el.attr('disabled', true))
-            return await GM_xmlHttpRequest({
+            return new Promise((resolve, reject) => {
+                GM_xmlHttpRequest({
                     method,
                     url: url + path,
                     headers: {
@@ -97,7 +98,15 @@
                         ...headers
                     },
                     ...config,
+                }).then(res => {
+                    this.buttons.forEach(button => button.$el.removeAttr('disabled'));
+                    if (response.status === methodDict[method]) {
+                        resolve(response)
+                    } else {
+                        this.mainScript.popMsg(`WebDAV请求失败! 状态码: ${response.status} ${response.statusText}`, 'err')
+                    }
                 });
+            });
             },
         // 获取文件列表
         getFileList() {
