@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
-// @version      4.4.1.3
+// @version      4.4.1.4
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
 // @license      MIT
@@ -4407,7 +4407,8 @@
          * @returns 哈希值
          */
         hashCode(str) {
-            return str.split('').reduce((prevHash, currVal) => (((prevHash << 5) - prevHash) + currVal.charCodeAt(0))|0, 0)
+            const s = str ? str.toString() : "";
+            return s.split('').reduce((prevHash, currVal) => (((prevHash << 5) - prevHash) + currVal.charCodeAt(0))|0, 0)
         },
         style: `
         #hld__plugin_panel {display:none;width:400px;min-height:300px;}
