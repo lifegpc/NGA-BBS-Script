@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         NGA优化摸鱼体验-WebDAV配置同步
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script/plugins/WebDAVDataSync
+// @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/plugins/WebDAVDataSync/WebDAVDataSync.js
 // @version      1.0.0
 // @author       HLD
 // @description  使用WebDAV对配置进行同步，提供上传/下载配置功能
@@ -9,14 +10,37 @@
 // @match        *://ngabbs.com/*
 // @match        *://nga.178.com/*
 // @match        *://g.nga.cn/*
-// @grant        GM_xmlhttpRequest
-// @grant        unsafeWindow
 // @run-at       document-start
-// @inject-into  content
+// @inject-into  page
 // ==/UserScript==
 
 (function (registerPlugin) {
     'use strict';
+    /**
+     * @param {string} name
+     * @param {Array} args 
+     */
+    function GM(name, args) {
+        const key = Math.random();
+        const ev = new CustomEvent("GM", {detail: {name, key, args}});
+        return new Promise((resolve, reject) => {
+            const handler = (e) => {
+                if (e.detail.key == key) {
+                    window.removeEventListener(name, handler);
+                    if (e.detail.error) {
+                        reject(e.detail.error);
+                    } else {
+                        resolve(e.detail.data);
+                    }
+                }
+            }
+            window.addEventListener(name, handler);
+            window.dispatchEvent(ev);
+        })
+    }
+    async function GM_xmlHttpRequest(data) {
+        return await GM("GM_xmlHttpRequest", [data]);
+    }
     const WebDAVDataSync = {
         name: 'WebDAVDataSync',
         title: 'WebDAV配置同步',
@@ -52,7 +76,7 @@
             action: 'downloadSelected'
         }],
         // 请求构造
-        request({method, path='', headers, ...config}) {
+        async request({method, path='', headers, ...config}) {
             // 获取输入框的当前的值
             let url = this.pluginInputs['url'].val().trim()
             url[url.length - 1] !== '/' && (url += '/')
@@ -65,8 +89,7 @@
                 DELETE: 204
             }
             this.buttons.forEach(button => button.$el.attr('disabled', true))
-            return new Promise((resolve, reject) => {
-                GM_xmlhttpRequest({
+            return await GM_xmlHttpRequest({
                     method,
                     url: url + path,
                     headers: {
@@ -74,17 +97,8 @@
                         ...headers
                     },
                     ...config,
-                    onload: response => {
-                        this.buttons.forEach(button => button.$el.removeAttr('disabled'))
-                        if (response.status === methodDict[method]) {
-                            resolve(response)
-                        } else {
-                            this.mainScript.popMsg(`WebDAV请求失败! 状态码: ${response.status} ${response.statusText}`, 'err')
-                        }
-                    }
-                })
-            })
-        },
+                });
+            },
         // 获取文件列表
         getFileList() {
             return new Promise((resolve, reject) => {
@@ -188,6 +202,7 @@
 
 })(function(plugin) {
     plugin.meta = GM_info.script
+    const unsafeWindow = window;
     unsafeWindow.ngaScriptPlugins = unsafeWindow.ngaScriptPlugins || []
     unsafeWindow.ngaScriptPlugins.push(plugin)
 });

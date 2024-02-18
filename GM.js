@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         NGA优化摸鱼体验 - GM API实现
 // @namespace    https://github.com/lifegpc/NGA-BBS-Script
-// @version      1.0.0
+// @version      1.0.1
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/GM.js
 // @author       lifegpc
 // @description  Safari 扩展 UserScripts 适配
@@ -16,6 +16,7 @@
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.deleteValue
+// @grant        GM.xmlHttpRequest
 // ==/UserScript==
 window.addEventListener("GM", async (ev) => {
     const name = ev.detail.name;
@@ -47,6 +48,23 @@ window.addEventListener("GM", async (ev) => {
         try {
             const data = await GM.deleteValue(args[0]);
             return_data(data);
+        } catch (e) {
+            return_error(e);
+        }
+    } else if (name == "GM_xmlHttpRequest") {
+        try {
+            Object.assign({
+                onload: (res) => {
+                    return_data(res);
+                },
+                onabort: (res) => {
+                    return_error(res);
+                },
+                onerror: (res) => {
+                    return_error(res);
+                }
+            }, args[0])
+            GM.xmlHttpRequest(args[0]);
         } catch (e) {
             return_error(e);
         }
