@@ -1,3 +1,9 @@
+# NGA优化摸鱼体验 Safari 扩展 Userscripts 适配
+**安装以下脚本前请先安装[此脚本](https://github.com/lifegpc/NGA-BBS-Script/raw/master/GM.js)**  
+* [NGA优化摸鱼体验](https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js)
+* [NGA优化摸鱼体验-帖子浏览记录](https://github.com/lifegpc/NGA-BBS-Script/raw/master/plugins/PostReadingRecord/PostReadingRecord.js)
+* [NGA优化摸鱼体验-WebDAV配置同步](https://github.com/lifegpc/NGA-BBS-Script/raw/master/plugins/WebDAVDataSync/WebDAVDataSync.js)
+
 <center>
     <div align="center">
         <h2>
