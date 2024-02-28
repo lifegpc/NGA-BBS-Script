@@ -2,7 +2,7 @@
 // @name         NGA优化摸鱼体验
 // @namespace    https://github.com/kisshang1993/NGA-BBS-Script
 // @updateURL    https://github.com/lifegpc/NGA-BBS-Script/raw/master/Script.js
-// @version      4.4.1.4
+// @version      4.4.3
 // @author       HLD
 // @description  NGA论坛显示优化，全面功能增强，优雅的摸鱼
 // @license      MIT
@@ -69,6 +69,7 @@
         constructor() {
             // 配置
             this.setting = {
+                original: [],
                 normal: {},
                 advanced: {}
             }
@@ -170,7 +171,8 @@
                     this.setting.normal.shortcutKeys.push(setting.shortCutCode)
                 }
                 if (setting.key) {
-                    this.setting[setting.type || 'normal'][setting.key] = setting.default || ''
+                    this.setting[setting.type || 'normal'][setting.key] = setting.default ?? ''
+                    this.setting.original.push(setting)
                 }
             }
             // 功能板块
@@ -365,7 +367,8 @@
             // 高级设置
             for (let k in this.setting.advanced) {
                 if ($('#hld__adv_' + k).length > 0) {
-                    const valueType = typeof this.setting.advanced[k]
+                    const originalSetting = this.setting.original.find(s => s.type == 'advanced' && s.key == k)
+                    const valueType = typeof originalSetting.default
                     const inputType = $('#hld__adv_' + k)[0].nodeName
                     if (inputType == 'SELECT') {
                         this.setting.advanced[k] = $('#hld__adv_' + k).val()
@@ -1898,8 +1901,8 @@
         renderFormsFunc($el) {
             if (script.setting.normal.foldQuote) {
                 // 自动折叠过长引用
-                if ($el.find('.postcontent .quote').length > 0) {
-                    let $quote = $el.find('.postcontent .quote')
+                $el.find('.postcontent .quote').each(function() {
+                    const $quote = $(this)
                     if ($quote.height() > (script.setting.advanced.foldQuoteHeight || 300)) {
                         const originalHeight = $quote.height()
                         $quote.addClass('hld__quote-fold')
@@ -1911,7 +1914,7 @@
                         })
                         $quote.append($openBtn)
                     }
-                }
+                })
                 // 折叠附件
                 if ($el.find('h4.silver.subtitle').length > 0) {
                     $el.find('h4.silver.subtitle').each(function (){
@@ -2250,7 +2253,7 @@
                 const author = $('#postauthor0').text().replace('楼主', '')
                 const tid = this.getQueryString('tid')
                 const authorStr = `${tid}:${author}`
-                if (author && !this.postAuthor.includes(authorStr) && !window.location.href.includes('authorid')) {
+                if (author && !this.postAuthor.includes(authorStr) && ['authorid=', 'pid='].every(k => !window.location.href.includes(k))) {
                     this.postAuthor.unshift(authorStr) > 10 && this.postAuthor.pop()
                     script.setValue('hld__NGA_post_author', this.postAuthor.join(','))
                 }
@@ -4272,7 +4275,8 @@
                     if (!script.setting.plugin[pluginID]) {
                         script.setting.plugin[pluginID] = {}
                     }
-                    script.setting.plugin[pluginID][setting.key] = setting.default || ''
+                    script.setting.plugin[pluginID][setting.key] = setting.default ?? ''
+                    script.setting.original.push(Object.assign({type: 'plugin', pluginID}, setting))
                 }
             }
             // 功能板块
@@ -4364,7 +4368,8 @@
                         $controls.each((index, element) => {
                             const k = $(element).attr('plugin-setting-key')
                             const inputType = $(element)[0].nodeName
-                            const valueType = typeof pluginSetting[k]
+                            const originalSetting = script.setting.original.find(s => s.type == 'plugin' && s.pluginID == pluginID && s.key == k)
+                            const valueType = typeof originalSetting.default
                             if (inputType == 'SELECT') {
                                 pluginSetting[k] = $(element).val()
                             } else {
